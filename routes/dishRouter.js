@@ -22,7 +22,7 @@ dishRouter.route('/')
         })
         .catch((err) => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.create(req.body)
         .then((dish) => {
             res.statusCode = 200;
@@ -35,11 +35,11 @@ dishRouter.route('/')
             next(err);
         });
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not allowed on "/dishes" path`);
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.remove({})
         .then((resp) => {
             res.statusCode = 200;
@@ -68,11 +68,11 @@ dishRouter.route('/:dishId')
         next(err);
     });
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation is not allowed on /dishes/${req.url} path`);
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, 
         { $set: req.body}, 
         { new : true})
@@ -83,7 +83,7 @@ dishRouter.route('/:dishId')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
         .then((resp) => {
             res.statusCode = 200;
@@ -141,7 +141,7 @@ dishRouter.route('/:dishId/comments')
     res.statusCode = 403;
     res.end(`PUT operation is not allowed on "/dishes/${req.params.dishId}/comments" path`);
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
         .then((dish) => {
             if (dish != null && dish.comments.length != 0) {
@@ -224,8 +224,9 @@ dishRouter.route('/:dishId/comments/:commentId')
                     }, (err) => next(err));
             }
             else{
-                res.statusCode = 403;
-                res.end(`You are not authorized to modify this comment`);
+                let err = new Error('You are not authorized to modify this comment');
+                err.status = 403;
+                return next(err);
             }
         }
         else if( dish == null) {
@@ -245,17 +246,25 @@ dishRouter.route('/:dishId/comments/:commentId')
     Dishes.findById(req.params.dishId)
         .then((dish) => {
             if (dish != null && dish.comments.id(req.params.commentId) != null) {
-                dish.comments.id(req.params.commentId).remove();
-                dish.save()
-                    .then((dish) => {
-                        Dishes.findById(dish._id)
-                        .populate('comments.author')
+                if(req.user._id.equals(dish.comments.id(req.params.commentId).author)){
+                    dish.comments.id(req.params.commentId).remove();
+                    dish.save()
                         .then((dish) => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json(dish);  
-                        })   
-                    }, (err) => next(err));
+                            Dishes.findById(dish._id)
+                            .populate('comments.author')
+                            .then((dish) => {
+                                res.statusCode = 200;
+                                res.setHeader('Content-Type', 'application/json');
+                                res.json(dish);  
+                            })   
+                        }, (err) => next(err));
+                }
+                else{
+                    let err = new Error('You are not authorized to modify this comment');
+                    err.status = 403;
+                    return next(err);
+                }
+            
             }
             else if( dish == null) {
                 err = new Error(`Dish with ${req.params.dishId} not found!`);

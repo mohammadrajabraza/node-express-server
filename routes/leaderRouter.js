@@ -19,7 +19,7 @@ leaderRouter.route('/')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Leaders.create(req.body)
         .then((leader) => {
             res.statusCode = 200;
@@ -28,11 +28,11 @@ leaderRouter.route('/')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not allowed on "/leaders" path`);
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Leaders.remove({})
         .then((resp) => {
             res.statusCode = 200;
@@ -40,8 +40,8 @@ leaderRouter.route('/')
             res.json(resp);
         }, (err) => next(err))
         .catch((err) => next(err));
-});
-
+        
+    });
 leaderRouter.route('/:leaderId')
 .get((req, res, next) => {
     Leaders.findById(req.params.leaderId)
@@ -52,11 +52,11 @@ leaderRouter.route('/:leaderId')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation is not allowed on /leaders/${req.url} path`);
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Leaders.findByIdAndUpdate(req.params.leaderId, 
         { $set: req.body}, 
         { new : true})
@@ -67,7 +67,7 @@ leaderRouter.route('/:leaderId')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Leaders.findByIdAndRemove(req.params.leaderId)
         .then((resp) => {
             res.statusCode = 200;
