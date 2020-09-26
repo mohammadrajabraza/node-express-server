@@ -205,22 +205,28 @@ dishRouter.route('/:dishId/comments/:commentId')
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if(dish != null && dish.comments.id(req.params.commentId) != null) {
-            if(req.body.rating){
-                dish.comments.id(req.params.commentId).rating = req.body.rating;
-            }
-            if(req.body.comment) {
-                dish.comments.id(req.params.commentId).comment = req.body.comment;
-            }
-            dish.save()
-                .then((dish) => {
-                    Dishes.findById(dish._id)
-                    .populate('comments.author')
+            if(req.user._id.equals(dish.comments.id(req.params.commentId).author)){
+                if(req.body.rating){
+                    dish.comments.id(req.params.commentId).rating = req.body.rating;
+                }
+                if(req.body.comment) {
+                    dish.comments.id(req.params.commentId).comment = req.body.comment;
+                }
+                dish.save()
                     .then((dish) => {
-                        res.statusCode = 200;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json(dish);  
-                    })        
-                }, (err) => next(err));
+                        Dishes.findById(dish._id)
+                        .populate('comments.author')
+                        .then((dish) => {
+                            res.statusCode = 200;
+                            res.setHeader('Content-Type', 'application/json');
+                            res.json(dish);  
+                        })        
+                    }, (err) => next(err));
+            }
+            else{
+                res.statusCode = 403;
+                res.end(`You are not authorized to modify this comment`);
+            }
         }
         else if( dish == null) {
             err = new Error(`Dish with ${req.params.dishId} not found!`);

@@ -22,8 +22,10 @@ const promosRouter = require('./routes/promoRouter');
 const url = config.mongoUrl;
 
 const connect = mongoose.connect(url, {
-  useMongoClient: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 });
+mongoose.set('useCreateIndex', true);
 
 connect.then((db) => {
   console.log('Connected successfullt to the server');
@@ -45,7 +47,6 @@ app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
 
 app.use('/dishes', dishesRouter);
 app.use('/promotions', promosRouter);
