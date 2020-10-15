@@ -60,10 +60,11 @@ userRouter.post('/login',passport.authenticate('local'), (req, res) => {
   res.json({success: true, token: token, status: 'You are successfully logged in!'})
 });
 
-userRouter.get('/logout', (req, res, next) => {
-  if(req.session){
-    req.session.destroy();
-    res.clearCookie('session-id');
+userRouter.get('/logout', authenticate.verifyUser, (req, res, next) => {
+  if(req.user){
+    req.logout();
+    // req.session.destroy();
+    // res.clearCookie('session-id');
     res.redirect('/');
   }
   else{
