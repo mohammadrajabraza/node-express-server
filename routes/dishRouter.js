@@ -41,7 +41,7 @@ dishRouter.route('/')
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
-    res.end(`PUT operation is not allowed on "/dishes" path`);
+    res.end(`PUT operation is not allowed on "/dishes" pateyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZjZlYTIzNWI5MjJiNDAwMTcxNThkMzAiLCJpYXQiOjE2MDI3NTQ3NTUsImV4cCI6MTYwMjc1ODM1NX0._qfuBzl2NldEFLLVQkWJ0MvzHQyUl5J8PeZ3PaNcYZ8h`);
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.remove({})
