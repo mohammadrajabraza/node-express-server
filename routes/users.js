@@ -81,19 +81,7 @@ userRouter.post('/login', cors.corsWithOptions, (req, res, next) => {
       res.json({ success: true, status: 'Login Successful!', token: token });
     });
   }) (req, res, next);
-});
 
-userRouter.get('/logout', cors.corsWithOptions, (req, res, next) => {
-  if (req.session) {
-    req.session.destroy();
-    res.clearCookie('session-id');
-    res.redirect('/');
-  }
-  else {
-    err = new Error('you are not logged in!');
-    err.status = 403;
-    next(err);
-  }
 });
 
 router.get('/checkJWTtoken', cors.corsWithOptions, (req, res) => {
@@ -113,6 +101,19 @@ router.get('/checkJWTtoken', cors.corsWithOptions, (req, res) => {
 
     }
   }) (req, res);
+});
+
+userRouter.get('/logout', cors.corsWithOptions, (req, res, next) => {
+  if (req.session) {
+    req.session.destroy();
+    res.clearCookie('session-id');
+    res.redirect('/');
+  }
+  else {
+    err = new Error('you are not logged in!');
+    err.status = 403;
+    next(err);
+  }
 });
 
 userRouter.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {
